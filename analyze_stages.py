@@ -31,6 +31,7 @@ from generate_data import (
     compute_funnel,
     generate_dataset,
 )
+import fetch_data
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -258,15 +259,26 @@ if __name__ == "__main__":
         help="Файл для сохранения результатов (default: output/analysis_results.json)",
     )
     parser.add_argument(
+        "--source",
+        type=str,
+        choices=["json", "postgres"],
+        default="json",
+        help="Источник данных: 'json' (файл) или 'postgres' (БД Grafana). (default: json)",
+    )
+    parser.add_argument(
         "--data-file",
         type=str,
         default="data/synthetic_calls.json",
-        help="JSON-файл с данными звонков (default: data/synthetic_calls.json)",
+        help="JSON-файл с данными звонков, используется при --source json (default: data/synthetic_calls.json)",
     )
     args = parser.parse_args()
 
-    # Load or generate data
-    if os.path.exists(args.data_file):
+    # Load data from the chosen source
+    if args.source == "postgres":
+        print("Загружаем данные из PostgreSQL (см. fetch_data.py для настройки)...")
+        records = fetch_data.fetch_records()
+        print(f"Загружено {len(records)} звонков из БД.")
+    elif os.path.exists(args.data_file):
         print(f"Загружаем данные из {args.data_file}...")
         with open(args.data_file, encoding="utf-8") as f:
             records = json.load(f)
